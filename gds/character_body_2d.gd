@@ -2,7 +2,7 @@ extends CharacterBody2D
 
 
 const SPEED = 300.0
-const FRICTION = 0.4
+const FRICTION = 1
 var face_direction = Vector2(0,0)
 var direction
 
