@@ -17,6 +17,3 @@ func _process(delta: float) -> void:
 func init():
 	id = camera.set_camera(self.global_position,weight)
 	
-func remove():
-	camera.remove_camera(id)
-	id = -1

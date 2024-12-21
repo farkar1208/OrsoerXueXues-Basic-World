@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://crhos1k3clge3" path="res://gds/camera_2d.gd" id="1_036b0"]
 [ext_resource type="PackedScene" uid="uid://3djjqsr16lai" path="res://xmc网格集.tscn" id="2_aqk2v"]
 [ext_resource type="PackedScene" uid="uid://b4vm3xx2bckot" path="res://character.tscn" id="3_036b0"]
-[ext_resource type="PackedScene" path="res://controler.tscn" id="4_dwbse"]
+[ext_resource type="PackedScene" uid="uid://dm1u3nf52853x" path="res://controler.tscn" id="4_dwbse"]
 [ext_resource type="PackedScene" uid="uid://ceqm435j7bpjl" path="res://attention.tscn" id="5_036b0"]
 [ext_resource type="PackedScene" uid="uid://bbikthsqmpj76" path="res://chooser.tscn" id="6_dwbse"]
 
