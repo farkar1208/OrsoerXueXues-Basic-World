@@ -1,0 +1,149 @@
+[gd_scene load_steps=6 format=3 uid="uid://3djjqsr16lai"]
+
+[ext_resource type="TileSet" uid="uid://bth25ovsucwns" path="res://tres/water.tres" id="1_j4ot7"]
+[ext_resource type="TileSet" uid="uid://ca4hpbe7wfehw" path="res://tres/dirt.tres" id="2_pbeu4"]
+[ext_resource type="TileSet" uid="uid://d0ot31aufh37p" path="res://tres/grass.tres" id="3_bd4ff"]
+[ext_resource type="Script" uid="uid://criius54lgf5" path="res://gds/load_clock.gd" id="4_pbeu4"]
+
+[sub_resource type="GDScript" id="GDScript_631ta"]
+script/source = "extends Node2D
+
+@onready var block_length = self.get(\"scale\").x * 16 * 16
+var width = 2
+var weak_width = 10
+var weak_node = {}
+@onready var layers = {'water':$water,'dirt':$dirt,'grass':$grass}
+# Called when the node enters the scene tree for the first time.
+
+
+
+func _ready() -> void:
+	var Dirmaker = DirAccess.open('user://')
+	Dirmaker.make_dir('user://save/')
+	self.add_child(preload(\"res://chooser.tscn\").instantiate(), false, Node.INTERNAL_MODE_BACK)#光标
+	pass # Replace with function body.
+
+func _process(delta: float) -> void:
+	if Input.is_action_just_pressed('user_save'):
+		for layer in layers:
+			layers[layer].update_internals()
+		for block_name in weak_node:
+			var block = weak_node[block_name]
+			block.set(\"patterns\", save_block(block.get(\"metadata/block_position\")))
+			block.call('store')
+		print('saveok')
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _physics_process(delta: float) -> void:
+	if Input.is_mouse_button_pressed(1):
+		set_terrian()
+	pass
+func _on_load_clock_timeout() -> void:
+	for camera_position in camera.camera_set:
+		load_range(camera_position.lc)
+
+func load_range(load_point : Vector2):
+	var load_position = Vector2i(load_point.x / block_length, load_point.y / block_length)
+	for i in range(load_position.x - width, load_position.x + width + 1):
+		for j in range(load_position.y - width, load_position.y + width + 1):
+			load_block(Vector2i(i,j))
+	for i in range(load_position.x - weak_width, load_position.x + weak_width + 1):
+		for j in range(load_position.y - weak_width, load_position.y + weak_width + 1):
+			weak_load_block(Vector2i(i,j))
+
+
+func weak_load_block(_load_position : Vector2i) -> void:
+	var load_position = 'X%dY%d'%[_load_position.x,_load_position.y]
+	if weak_node.has(load_position):
+		weak_node[load_position].set(\"metadata/freshness\",6)
+		return
+	var block = preload(\"res://xmc网格系统.tscn\").instantiate()
+	block.set_meta('block_position', _load_position)
+	block.call_deferred('loader')
+	block.set(\"metadata/freshness\",6)
+	weak_node[load_position] = block
+	
+func load_block(_load_position : Vector2i):
+	var load_position = 'X%dY%d'%[_load_position.x,_load_position.y]
+	if not weak_node.has(load_position):
+		weak_load_block(_load_position)
+	var block = weak_node[load_position]
+	if block.get(\"metadata/strong_loading\"):
+		block.fresh()
+		return
+	var patterns = block.get(\"patterns\")
+	if patterns.is_empty():
+		return
+	for layer in patterns:
+		#layers[layer].set_pattern(block.get(\"metadata/block_position\"), patterns[layer])
+		for crood in patterns[layer].get_used_cells():
+			layers[layer].set_cell(crood+block.get(\"metadata/block_position\")*16,patterns[layer].get_cell_source_id(crood),patterns[layer].get_cell_atlas_coords(crood),0)
+		
+			
+		#layers[layer].call('_update_cells',(glb_func.rect_croods_array(block.get(\"metadata/block_position\") * 16,Vector2i(16,16))))
+	self.add_child(block)
+	block.set(\"metadata/strong_loading\",true)
+	pass
+	
+func _on_save_clock_timeout() -> void:
+	for block_name in weak_node:
+		var block = weak_node[block_name]
+		if block.call('stale'):
+			block.set(\"patterns\", save_block(block.get(\"metadata/block_position\")))
+			block.set(\"metadata/strong_loading\",false)
+			block.call('store')
+			self.remove_child(block)
+
+
+func save_block(block: Vector2i)->Dictionary:
+	var patterns = {}
+	for layer in layers:
+		var pattern = layers[layer].get_pattern(glb_func.rect_croods_array(block * 16,Vector2i(16,16)))
+		patterns[layer] = pattern
+	return patterns
+	
+	
+
+	
+class Edit:
+	var enabled = true
+	var layer : String
+	var terrian_set : int
+	var terrian : int
+	func _init(_layer = 'water', _terrain_set = 0, _terrian = 0) -> void:
+		layer = _layer
+		terrian = _terrian
+		terrian_set = _terrain_set
+var edit = Edit.new('grass',0,0)
+
+
+func set_terrian():
+	if edit.enabled == false:
+		return
+	var chooser = self.get_child(-1, true)
+	var layer = layers[edit.layer]
+	layer.set_cells_terrain_connect([chooser.get(\"mouse_tile_position\")], edit.terrian_set, edit.terrian, false)
+"
+
+[node name="XMC网格集" type="Node2D"]
+scale = Vector2(4, 4)
+script = SubResource("GDScript_631ta")
+
+[node name="water" type="TileMapLayer" parent="."]
+tile_set = ExtResource("1_j4ot7")
+
+[node name="dirt" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_pbeu4")
+
+[node name="grass" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_bd4ff")
+
+[node name="save_clock" type="Timer" parent="."]
+wait_time = 30.0
+autostart = true
+
+[node name="load_clock" type="Timer" parent="."]
+autostart = true
+script = ExtResource("4_pbeu4")
+
+[connection signal="timeout" from="save_clock" to="." method="_on_save_clock_timeout"]
+[connection signal="timeout" from="load_clock" to="." method="_on_load_clock_timeout"]
