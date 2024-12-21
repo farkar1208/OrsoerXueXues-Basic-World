@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://ceqm435j7bpjl"]
+
+[ext_resource type="Script" uid="uid://dll2g00rafvx2" path="res://gds/attention.gd" id="1_ri3ml"]
+
+[node name="attention" type="Node2D"]
+script = ExtResource("1_ri3ml")
+metadata/weight = 0.0
+metadata/id = 0

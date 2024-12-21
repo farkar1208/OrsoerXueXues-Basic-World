@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://0mdbd8cm5fjk"]
+
+[ext_resource type="Script" uid="uid://b2uxbofs5ddeg" path="res://gds/controler.gd" id="1_ywfha"]
+
+[node name="controler" type="Node2D"]
+script = ExtResource("1_ywfha")
+metadata/direction = Vector2(0, 0)
